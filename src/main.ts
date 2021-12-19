@@ -1,16 +1,61 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import * as github from '@actions/github'
+import * as xlsx from 'xlsx'
+import {Octokit} from '@octokit/rest'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    //fetch data using octokit api
+    const context = github.context
+    const login: string = context.payload?.repository?.owner.login!
+    const repoName: string = context.payload?.repository?.name!
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const octokit = new Octokit({
+      auth: core.getInput('token')
+    })
+    const {data} = await octokit.rest.codeScanning.listAlertsForRepo({
+      owner: login,
+      repo: repoName
+    })
 
-    core.setOutput('time', new Date().toTimeString())
+    // create a array of objects with the data
+
+    const csvData: string[][] = []
+    const header: string[] = [
+      'toolName',
+      'alertNumber',
+      'htmlUrl',
+      'state',
+      'rule',
+      'severity'
+    ]
+
+    csvData.push(header)
+    //iterate over the data and print the alert information
+    for (const alert of data) {
+      core.debug(`${alert.tool.name}[${alert.number}]: \
+      ${alert.state} \
+      ${alert.rule.id} \
+      ${alert.rule.severity}`)
+
+      //create an array of string values
+      const row: string[] = [
+        alert.tool.name!,
+        alert.number.toString(),
+        alert.html_url,
+        alert.state,
+        alert.rule.id!,
+        alert.rule.severity!
+      ]
+
+      csvData.push(row)
+    }
+
+    //create an excel file with the data
+    const wb = xlsx.utils.book_new()
+    const ws = xlsx.utils.aoa_to_sheet(csvData)
+    xlsx.utils.book_append_sheet(wb, ws, 'Sheet1')
+    xlsx.writeFile(wb, 'alerts.xlsx')
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
