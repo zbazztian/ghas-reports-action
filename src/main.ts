@@ -9,8 +9,44 @@ async function run(): Promise<void> {
     const context = github.context
     const login: string = context.payload?.repository?.owner.login!
     const repoName: string = context.payload?.repository?.name!
-
+    //get the code scanning report for repo and save as alerts.xlsx
     await getCodeScanningReport(login, repoName)
+
+    //fetch graphql data using octokit api
+    const octokit = new Octokit({
+      auth: core.getInput('token')
+    })
+    const {data} = await octokit.graphql(
+      `query {
+        repository(owner: "${login}", name: "${repoName}") {
+          name
+          pullRequests(last: 100, states: OPEN) {
+            edges {
+              node {
+                title
+                number
+                url
+                commits(last: 1) {
+                  edges {
+                    node {
+                      commit {
+                        oid
+                        message
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`
+    )
+
+    //print data to core.debug
+    for (const pr of data.repository.pullRequests.edges) {
+      core.debug(JSON.stringify(pr.node))
+    }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

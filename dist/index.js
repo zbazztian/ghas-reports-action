@@ -47,7 +47,40 @@ function run() {
             const context = github.context;
             const login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
             const repoName = (_d = (_c = context.payload) === null || _c === void 0 ? void 0 : _c.repository) === null || _d === void 0 ? void 0 : _d.name;
+            //get the code scanning report for repo and save as alerts.xlsx
             yield getCodeScanningReport(login, repoName);
+            //fetch graphql data using octokit api
+            const octokit = new rest_1.Octokit({
+                auth: core.getInput('token')
+            });
+            const { data } = yield octokit.graphql(`query {
+        repository(owner: "${login}", name: "${repoName}") {
+          name
+          pullRequests(last: 100, states: OPEN) {
+            edges {
+              node {
+                title
+                number
+                url
+                commits(last: 1) {
+                  edges {
+                    node {
+                      commit {
+                        oid
+                        message
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`);
+            //print data to core.debug
+            for (const pr of data.repository.pullRequests.edges) {
+                core.debug(JSON.stringify(pr.node));
+            }
         }
         catch (error) {
             if (error instanceof Error)
