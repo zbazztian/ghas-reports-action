@@ -54,32 +54,42 @@ function run() {
                 auth: core.getInput('token')
             });
             const { data } = yield octokit.graphql(`query {
-        repository(owner: "${login}", name: "${repoName}") {
-          name
-          pullRequests(last: 100, states: OPEN) {
-            edges {
-              node {
-                title
-                number
-                url
-                commits(last: 1) {
-                  edges {
-                    node {
-                      commit {
-                        oid
-                        message
-                      }
-                    }
-                  }
-                }
-              }
+        repository(owner: "amitgupta7", name: "ghas-reports-action") {
+            name
+            licenseInfo {
+                name
             }
-          }
+            dependencyGraphManifests {
+                totalCount
+                edges {
+                    node {
+                        filename
+                        dependencies {
+                            edges {
+                                node {
+                                    packageName
+                                    packageManager
+                                    requirements
+                                    repository {
+                                        licenseInfo {
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }`);
+    }
+    `);
             //print data to core.debug
-            for (const pr of data.repository.pullRequests.edges) {
-                core.debug(JSON.stringify(pr.node));
+            for (const manifest of data.repository.dependencyGraphManifests.edges) {
+                for (const dependency of manifest.node.dependencies.edges) {
+                    core.debug(`${manifest.filename} ${dependency.node.packageName} "${dependency.node.requirements}" \
+        ${dependency.node.repository.licenseInfo.name}`);
+                }
             }
         }
         catch (error) {
