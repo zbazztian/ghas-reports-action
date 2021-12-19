@@ -1,18 +1,30 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
 
-# Create a JavaScript Action using TypeScript
+This action is written to demonstrate the use of xlsx package and github api to generate a fast excel report (alerts.xlsx) for code-scanning issues and dependencies  (including license) information available within the repository issues and dependencies (dependency graph) api.
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
+![Screenshot 2021-12-20 at 12 32 22 AM](https://user-images.githubusercontent.com/23517709/146687440-20259d95-3a6a-4d03-8cf0-4fb401414b41.png)
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+#### dependencies-list sheet
+<img width="863" alt="Screenshot 2021-12-20 at 12 26 16 AM" src="https://user-images.githubusercontent.com/23517709/146687357-062d7710-d33a-4987-9974-0c0c3a364602.png">
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+#### code-scanning-issues sheet
+<img width="717" alt="Screenshot 2021-12-20 at 12 26 38 AM" src="https://user-images.githubusercontent.com/23517709/146687360-b04a651f-6e06-4b40-8b0a-d436e50c68b4.png">
 
-## Create an action from this template
 
-Click the `Use this Template` and provide the new repo details for your action
+## Using to the Action
+
+The action require a github personal access token passed in the workflow file. The correct way to do this is to use repository secrets.
+
+The action creates alert.xlsx file in the workspace, which needs to be uploaded using the upload-artifact action.
+
+      # Generate issues and save results
+      - uses: amitgupta7/ghas-reports-action@v2
+        with:
+          token: ${{ secrets.APT_TOKEN }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: alerts.xlsx          
 
 ## Code in Main
 
@@ -28,51 +40,33 @@ Build the typescript and package it for distribution
 $ npm run build && npm run package
 ```
 
-Run the tests :heavy_check_mark:  
+Run the tests (Not working at the moment)
 ```bash
 $ npm test
 
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
+ 
+    Command failed: node ./lib/main.js
+
+      12 |     env: process.env
+      13 |   }
+    > 14 |   console.log(cp.execFileSync(np, [ip], options).toString())
+         |                  ^
+      15 | })
+      16 |
+
+      at Object.<anonymous> (__tests__/main.test.ts:14:18)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Snapshots:   0 total
+Time:        1.524 s, estimated 2 s
 
 ...
 ```
-
-## Change action.yml
-
-The action.yml defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
 
 ## Publish to a distribution branch
 
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
+Actions are run from Public GitHub repos so we will checkin the packed dist folder. 
 
 Then run [ncc](https://github.com/zeit/ncc) and push the results:
 ```bash
@@ -87,19 +81,3 @@ Note: We recommend using the `--license` option for ncc, which will create a lic
 Your action is now published! :rocket: 
 
 See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
-
-```yaml
-uses: ./
-with:
-  milliseconds: 1000
-```
-
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
-
-## Usage:
-
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
