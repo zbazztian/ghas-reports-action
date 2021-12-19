@@ -1,11 +1,5 @@
 name: 'build-test'
-on: # rebuild any PRs and main branch changes
-  pull_request:
-  push:
-    branches:
-      - main
-      - 'releases/*'
-
+on: workflow_dispatch
 jobs:
   build: # make sure build/ci work properly
     runs-on: ubuntu-latest
