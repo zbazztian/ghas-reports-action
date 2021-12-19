@@ -50,6 +50,8 @@ async function run(): Promise<void> {
     `
     )
 
+    core.debug(JSON.stringify(data))
+
     //print data to core.debug
     for (const manifest of data.repository.dependencyGraphManifests.edges) {
       for (const dependency of manifest.node.dependencies.edges) {
