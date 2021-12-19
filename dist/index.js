@@ -45,8 +45,7 @@ function run() {
         try {
             //fetch data using octokit api
             const octokit = new rest_1.Octokit({
-                //auth: core.getInput('token')
-                auth: process.env.INPUT_TOKEN
+                auth: core.getInput('token')
             });
             const context = github.context;
             const login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;

@@ -7,8 +7,7 @@ async function run(): Promise<void> {
   try {
     //fetch data using octokit api
     const octokit = new Octokit({
-      //auth: core.getInput('token')
-      auth: process.env.INPUT_TOKEN
+      auth: core.getInput('token')
     })
     const context = github.context
     const login: string = context.payload?.repository?.owner.login!
