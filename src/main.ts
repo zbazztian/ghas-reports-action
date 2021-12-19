@@ -6,59 +6,15 @@ import {Octokit} from '@octokit/rest'
 async function run(): Promise<void> {
   try {
     //fetch data using octokit api
+    const octokit = new Octokit({
+      //auth: core.getInput('token')
+      auth: process.env.INPUT_TOKEN
+    })
     const context = github.context
     const login: string = context.payload?.repository?.owner.login!
     const repoName: string = context.payload?.repository?.name!
     //get the code scanning report for repo and save as alerts.xlsx
-    await getCodeScanningReport(login, repoName)
-
-    //fetch graphql data using octokit api
-    const octokit = new Octokit({
-      auth: core.getInput('token')
-    })
-    const {data} = await octokit.graphql(
-      `query {
-        repository(owner: "amitgupta7", name: "ghas-reports-action") {
-            name
-            licenseInfo {
-                name
-            }
-            dependencyGraphManifests {
-                totalCount
-                edges {
-                    node {
-                        filename
-                        dependencies {
-                            edges {
-                                node {
-                                    packageName
-                                    packageManager
-                                    requirements
-                                    repository {
-                                        licenseInfo {
-                                            name
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    `
-    )
-
-    core.setOutput('data', data)
-
-    //print data to core.debug
-    for (const manifest of data.repository.dependencyGraphManifests.edges) {
-      for (const dependency of manifest.node.dependencies.edges) {
-        core.debug(`${manifest.filename} ${dependency.node.packageName} "${dependency.node.requirements}" \
-        ${dependency.node.repository.licenseInfo.name}`)
-      }
-    }
+    await getCodeScanningReport(login, repoName, octokit)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
@@ -68,11 +24,9 @@ run()
 
 async function getCodeScanningReport(
   login: string,
-  repoName: string
+  repoName: string,
+  octokit: Octokit
 ): Promise<void> {
-  const octokit = new Octokit({
-    auth: core.getInput('token')
-  })
   const {data} = await octokit.rest.codeScanning.listAlertsForRepo({
     owner: login,
     repo: repoName

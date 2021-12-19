@@ -44,54 +44,15 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             //fetch data using octokit api
+            const octokit = new rest_1.Octokit({
+                //auth: core.getInput('token')
+                auth: process.env.INPUT_TOKEN
+            });
             const context = github.context;
             const login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
             const repoName = (_d = (_c = context.payload) === null || _c === void 0 ? void 0 : _c.repository) === null || _d === void 0 ? void 0 : _d.name;
             //get the code scanning report for repo and save as alerts.xlsx
-            yield getCodeScanningReport(login, repoName);
-            //fetch graphql data using octokit api
-            const octokit = new rest_1.Octokit({
-                auth: core.getInput('token')
-            });
-            const { data } = yield octokit.graphql(`query {
-        repository(owner: "amitgupta7", name: "ghas-reports-action") {
-            name
-            licenseInfo {
-                name
-            }
-            dependencyGraphManifests {
-                totalCount
-                edges {
-                    node {
-                        filename
-                        dependencies {
-                            edges {
-                                node {
-                                    packageName
-                                    packageManager
-                                    requirements
-                                    repository {
-                                        licenseInfo {
-                                            name
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    `);
-            core.setOutput('data', data);
-            //print data to core.debug
-            for (const manifest of data.repository.dependencyGraphManifests.edges) {
-                for (const dependency of manifest.node.dependencies.edges) {
-                    core.debug(`${manifest.filename} ${dependency.node.packageName} "${dependency.node.requirements}" \
-        ${dependency.node.repository.licenseInfo.name}`);
-                }
-            }
+            yield getCodeScanningReport(login, repoName, octokit);
         }
         catch (error) {
             if (error instanceof Error)
@@ -100,11 +61,8 @@ function run() {
     });
 }
 run();
-function getCodeScanningReport(login, repoName) {
+function getCodeScanningReport(login, repoName, octokit) {
     return __awaiter(this, void 0, void 0, function* () {
-        const octokit = new rest_1.Octokit({
-            auth: core.getInput('token')
-        });
         const { data } = yield octokit.rest.codeScanning.listAlertsForRepo({
             owner: login,
             repo: repoName
