@@ -47,46 +47,7 @@ function run() {
             const context = github.context;
             const login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
             const repoName = (_d = (_c = context.payload) === null || _c === void 0 ? void 0 : _c.repository) === null || _d === void 0 ? void 0 : _d.name;
-            const octokit = new rest_1.Octokit({
-                auth: core.getInput('token')
-            });
-            const { data } = yield octokit.rest.codeScanning.listAlertsForRepo({
-                owner: login,
-                repo: repoName
-            });
-            // create a array of objects with the data
-            const csvData = [];
-            const header = [
-                'toolName',
-                'alertNumber',
-                'htmlUrl',
-                'state',
-                'rule',
-                'severity'
-            ];
-            csvData.push(header);
-            //iterate over the data and print the alert information
-            for (const alert of data) {
-                core.debug(`${alert.tool.name}[${alert.number}]: \
-      ${alert.state} \
-      ${alert.rule.id} \
-      ${alert.rule.severity}`);
-                //create an array of string values
-                const row = [
-                    alert.tool.name,
-                    alert.number.toString(),
-                    alert.html_url,
-                    alert.state,
-                    alert.rule.id,
-                    alert.rule.severity
-                ];
-                csvData.push(row);
-            }
-            //create an excel file with the data
-            const wb = xlsx.utils.book_new();
-            const ws = xlsx.utils.aoa_to_sheet(csvData);
-            xlsx.utils.book_append_sheet(wb, ws, 'Sheet1');
-            xlsx.writeFile(wb, 'alerts.xlsx');
+            yield getCodeScanningReport(login, repoName);
         }
         catch (error) {
             if (error instanceof Error)
@@ -95,6 +56,50 @@ function run() {
     });
 }
 run();
+function getCodeScanningReport(login, repoName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const octokit = new rest_1.Octokit({
+            auth: core.getInput('token')
+        });
+        const { data } = yield octokit.rest.codeScanning.listAlertsForRepo({
+            owner: login,
+            repo: repoName
+        });
+        // create a array of objects with the data
+        const csvData = [];
+        const header = [
+            'toolName',
+            'alertNumber',
+            'htmlUrl',
+            'state',
+            'rule',
+            'severity'
+        ];
+        csvData.push(header);
+        //iterate over the data and print the alert information
+        for (const alert of data) {
+            core.debug(`${alert.tool.name}[${alert.number}]: \
+      ${alert.state} \
+      ${alert.rule.id} \
+      ${alert.rule.severity}`);
+            //create an array of string values
+            const row = [
+                alert.tool.name,
+                alert.number.toString(),
+                alert.html_url,
+                alert.state,
+                alert.rule.id,
+                alert.rule.severity
+            ];
+            csvData.push(row);
+        }
+        //create an excel file with the data
+        const wb = xlsx.utils.book_new();
+        const ws = xlsx.utils.aoa_to_sheet(csvData);
+        xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues');
+        xlsx.writeFile(wb, 'alerts.xlsx');
+    });
+}
 
 
 /***/ }),
