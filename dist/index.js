@@ -39,6 +39,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const xlsx = __importStar(__nccwpck_require__(4487));
 const rest_1 = __nccwpck_require__(5375);
+const graphql_1 = __nccwpck_require__(8467);
 function run() {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
@@ -51,7 +52,15 @@ function run() {
             const login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
             const repoName = (_d = (_c = context.payload) === null || _c === void 0 ? void 0 : _c.repository) === null || _d === void 0 ? void 0 : _d.name;
             //get the code scanning report for repo and save as alerts.xlsx
-            yield getCodeScanningReport(login, repoName, octokit);
+            const csIssues = yield getCodeScanningReport(login, repoName, octokit);
+            const dgInfo = yield getDependencyGraphReport(login, repoName);
+            //create an excel file with the data
+            const wb = xlsx.utils.book_new();
+            const ws = xlsx.utils.aoa_to_sheet(csIssues);
+            const ws1 = xlsx.utils.aoa_to_sheet(dgInfo);
+            xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues');
+            xlsx.utils.book_append_sheet(wb, ws1, 'dependencies-list');
+            xlsx.writeFile(wb, 'alerts.xlsx');
         }
         catch (error) {
             if (error instanceof Error)
@@ -94,11 +103,75 @@ function getCodeScanningReport(login, repoName, octokit) {
             ];
             csvData.push(row);
         }
-        //create an excel file with the data
-        const wb = xlsx.utils.book_new();
-        const ws = xlsx.utils.aoa_to_sheet(csvData);
-        xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues');
-        xlsx.writeFile(wb, 'alerts.xlsx');
+        return csvData;
+    });
+}
+function getDependencyGraphReport(login, repoName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { repository } = yield (0, graphql_1.graphql)(`
+      {
+        repository(owner: "${login}", name: "${repoName}") {
+          name
+          licenseInfo {
+            name
+          }
+          dependencyGraphManifests {
+            totalCount
+            edges {
+              node {
+                filename
+                dependencies {
+                  edges {
+                    node {
+                      packageName
+                      packageManager
+                      requirements
+                      repository {
+                        licenseInfo {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `, {
+            headers: {
+                authorization: `token ${core.getInput('token')}`,
+                accept: 'application/vnd.github.hawkgirl-preview+json'
+            }
+        });
+        const csvData = [];
+        const header = [
+            'manifest',
+            'packageName',
+            'packageManager',
+            'requirements',
+            'licenseInfo'
+        ];
+        csvData.push(header);
+        for (const dependency of repository.dependencyGraphManifests.edges) {
+            for (const dependencyEdge of dependency.node.dependencies.edges) {
+                //console.log(JSON.stringify(dependencyEdge.node, null, 2))
+                let licenseInfo = '';
+                if (dependencyEdge.node.repository.licenseInfo) {
+                    licenseInfo = dependencyEdge.node.repository.licenseInfo.name;
+                }
+                const row = [
+                    dependency.node.filename,
+                    dependencyEdge.node.packageName,
+                    dependencyEdge.node.packageManager,
+                    dependencyEdge.node.requirements,
+                    licenseInfo
+                ];
+                csvData.push(row);
+            }
+        }
+        return csvData;
     });
 }
 
