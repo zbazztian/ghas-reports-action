@@ -158,7 +158,9 @@ function getDependencyGraphReport(login, repoName) {
             for (const dependencyEdge of dependency.node.dependencies.edges) {
                 //console.log(JSON.stringify(dependencyEdge.node, null, 2))
                 let licenseInfo = '';
-                if (dependencyEdge.node.repository.licenseInfo) {
+                if (dependencyEdge.node &&
+                    dependencyEdge.node.repository &&
+                    dependencyEdge.node.repository.licenseInfo) {
                     licenseInfo = dependencyEdge.node.repository.licenseInfo.name;
                 }
                 const row = [
