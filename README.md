@@ -19,7 +19,7 @@ The action creates alert.xlsx file in the workspace, which needs to be uploaded 
       # Generate issues and save results
       - uses: amitgupta7/ghas-reports-action@v2
         with:
-          token: ${{ secrets.APT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-artifact@v2
         with:
