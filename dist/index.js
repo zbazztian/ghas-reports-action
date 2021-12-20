@@ -71,7 +71,7 @@ function run() {
 run();
 function getCodeScanningReport(login, repoName, octokit) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { data } = yield octokit.rest.codeScanning.listAlertsForRepo({
+        const data = yield octokit.paginate(octokit.rest.codeScanning.listAlertsForRepo, {
             owner: login,
             repo: repoName
         });

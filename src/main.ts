@@ -40,10 +40,13 @@ async function getCodeScanningReport(
   repoName: string,
   octokit: Octokit
 ): Promise<string[][]> {
-  const {data} = await octokit.rest.codeScanning.listAlertsForRepo({
-    owner: login,
-    repo: repoName
-  })
+  const data = await octokit.paginate(
+    octokit.rest.codeScanning.listAlertsForRepo,
+    {
+      owner: login,
+      repo: repoName
+    }
+  )
 
   // create a array of objects with the data
   const csvData: string[][] = []
