@@ -25,7 +25,7 @@ jobs:
       # Runs a single command using the runners shell
       - uses: amitgupta7/ghas-reports-action@main
         with:
-          token: ${{ secrets.APT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
 
       - uses: actions/upload-artifact@v2
