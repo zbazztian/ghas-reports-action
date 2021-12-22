@@ -38,29 +38,32 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const xlsx = __importStar(__nccwpck_require__(4487));
-const rest_1 = __nccwpck_require__(5375);
-const graphql_1 = __nccwpck_require__(8467);
+const rest_1 = __nccwpck_require__(5375); //import to call rest api
+const graphql_1 = __nccwpck_require__(8467); //import to call graphql api
 function run() {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             //fetch data using octokit api
             const octokit = new rest_1.Octokit({
-                auth: core.getInput('token')
+                auth: core.getInput('token') //get the token from the action inputs.
             });
-            const context = github.context;
+            const context = github.context; //find the repo and owner from the github context
             let login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
             let repoName = (_d = (_c = context.payload) === null || _c === void 0 ? void 0 : _c.repository) === null || _d === void 0 ? void 0 : _d.name;
             if (!login || !repoName) {
+                //code to enable running on a local machine without a github context
+                //set the INPUT_TOKEN and GITHUB_REPOSITORY (to login/reponame) env variables
                 core.error('No login found, using GITHUB_REPOSITORY');
                 const repo = process.env.GITHUB_REPOSITORY;
                 login = repo.split('/')[0];
                 repoName = repo.split('/')[1];
             }
-            //get the code scanning report for repo and save as alerts.xlsx
+            //get the code scanning report for repo.
             const csIssues = yield getCodeScanningReport(login, repoName, octokit);
+            //get the dependency graph report for repo.
             const dgInfo = yield getDependencyGraphReport(login, repoName);
-            //create an excel file with the data
+            //create an excel file with the dataset
             const wb = xlsx.utils.book_new();
             const ws = xlsx.utils.aoa_to_sheet(csIssues);
             const ws1 = xlsx.utils.aoa_to_sheet(dgInfo);
