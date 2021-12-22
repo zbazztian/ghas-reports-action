@@ -1,5 +1,8 @@
 
-code-scanning issues and dependencies (including license) information is available within the repo API in github. This action is written to demonstrate the use of xlsx package and github api to generate a fast excel report (alerts.xlsx) using this API.  
+Code-scanning issues and dependencies (including license) information is available within the repo API in github. This action is written to demonstrate the use of xlsx package and github api to generate a fast excel report (alerts.xlsx) using this API.  
+
+If you would like to explore the these APIs using postman, plese see the [postman collection](Reports%20Postman%20Collection/) folder for details. 
+
 
 ![Screenshot 2021-12-20 at 12 32 22 AM](https://user-images.githubusercontent.com/23517709/146687440-20259d95-3a6a-4d03-8cf0-4fb401414b41.png)
 
@@ -40,7 +43,8 @@ Build the typescript and package it for distribution
 $ npm run build && npm run package
 ```
 
-Run the tests by setting the INPUT_TOKEN and GITHUB_REPOSITORY environment variables. This should create an [alerts.xlsx report file](alerts.xlsx) in the project root.
+Run the tests by setting the INPUT_TOKEN and GITHUB_REPOSITORY environment variables. This should create an [alerts.xlsx report file](alerts.xlsx) in the project root. 
+
 ```bash
 $ export INPUT_TOKEN=ghp_GITHUB_TOKEN_HERE
 $ export GITHUB_REPOSITORY=amitgupta7/WebGoat
