@@ -40,28 +40,36 @@ Build the typescript and package it for distribution
 $ npm run build && npm run package
 ```
 
-Run the tests (Not working at the moment)
+Run the tests by setting the INPUT_TOKEN and GITHUB_REPOSITORY environment variables. This should create an [alerts.xlsx report file](alerts.xlsx) in the project root.
 ```bash
+$ export INPUT_TOKEN=ghp_GITHUB_TOKEN_HERE
+$ export GITHUB_REPOSITORY=amitgupta7/WebGoat
 $ npm test
 
- 
-    Command failed: node ./lib/main.js
+> typescript-action@0.0.0 test
+> jest
 
-      12 |     env: process.env
-      13 |   }
-    > 14 |   console.log(cp.execFileSync(np, [ip], options).toString())
-         |                  ^
-      15 | })
-      16 |
+  console.log
+    ::error::No login found, using GITHUB_REPOSITORY
+    ::debug::CodeQL[293]:       open       java/random-used-once       warning
+    ::debug::CodeQL[292]:       open       java/potentially-weak-cryptographic-algorithm       warning
+    ::debug::CodeQL[291]:       open       java/unsafe-get-resource       warning
+    ::debug::CodeQL[5]:       open       js/html-constructed-from-input       error
+    ::debug::CodeQL[4]:       open       js/html-constructed-from-input       error
+    ::debug::CodeQL[3]:       open       js/xss-through-dom       warning
+    ::debug::CodeQL[2]:       open       js/incomplete-sanitization       warning
+    ::debug::CodeQL[1]:       open       js/incomplete-sanitization       warning
 
-      at Object.<anonymous> (__tests__/main.test.ts:14:18)
+      at Object.<anonymous> (__tests__/main.test.ts:13:11)
 
-Test Suites: 1 failed, 1 total
-Tests:       1 failed, 1 total
+ PASS  __tests__/main.test.ts (6.968 s)
+  ✓ test runs (6132 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
 Snapshots:   0 total
-Time:        1.524 s, estimated 2 s
-
-...
+Time:        7.04 s
+Ran all test suites.
 ```
 
 ## Publish to a distribution branch

@@ -49,8 +49,14 @@ function run() {
                 auth: core.getInput('token')
             });
             const context = github.context;
-            const login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
-            const repoName = (_d = (_c = context.payload) === null || _c === void 0 ? void 0 : _c.repository) === null || _d === void 0 ? void 0 : _d.name;
+            let login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
+            let repoName = (_d = (_c = context.payload) === null || _c === void 0 ? void 0 : _c.repository) === null || _d === void 0 ? void 0 : _d.name;
+            if (!login || !repoName) {
+                core.error('No login found, using GITHUB_REPOSITORY');
+                const repo = process.env.GITHUB_REPOSITORY;
+                login = repo.split('/')[0];
+                repoName = repo.split('/')[1];
+            }
             //get the code scanning report for repo and save as alerts.xlsx
             const csIssues = yield getCodeScanningReport(login, repoName, octokit);
             const dgInfo = yield getDependencyGraphReport(login, repoName);

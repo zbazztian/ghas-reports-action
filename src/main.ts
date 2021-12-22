@@ -11,8 +11,17 @@ async function run(): Promise<void> {
       auth: core.getInput('token')
     })
     const context = github.context
-    const login: string = context.payload?.repository?.owner.login!
-    const repoName: string = context.payload?.repository?.name!
+    let login: string = context.payload?.repository?.owner.login!
+
+    let repoName: string = context.payload?.repository?.name!
+
+    if (!login || !repoName) {
+      core.error('No login found, using GITHUB_REPOSITORY')
+      const repo = process.env.GITHUB_REPOSITORY!
+      login = repo.split('/')[0]
+      repoName = repo.split('/')[1]
+    }
+
     //get the code scanning report for repo and save as alerts.xlsx
     const csIssues: string[][] = await getCodeScanningReport(
       login,
