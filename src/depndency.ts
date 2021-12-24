@@ -70,17 +70,32 @@
 
 //             csvData.push(row)
 //         }
-
-//         const wb = xlsx.utils.book_new()
-//         const ws = xlsx.utils.aoa_to_sheet(csvData)
-//         xlsx.utils.book_append_sheet(wb, ws, 'dependencies-list')
-//         xlsx.writeFile(wb, 'dependencies.xlsx')
 //     }
 
-//     const wb = xlsx.utils.book_new()
-//     const ws = xlsx.utils.aoa_to_sheet(csvData)
-//     xlsx.utils.book_append_sheet(wb, ws, 'dependencies')
-//     xlsx.writeFile(wb, 'dependencies.xlsx')
+//     const Pivot = require('quick-pivot')
+
+//     const columnsToPivot = ['licenseInfo']
+//     const rowsToPivot = ['manifest']
+//     const aggregationDimensions = ['packageName']
+//     const aggregator = 'count'
+//     const pivot = new Pivot(csvData, rowsToPivot, columnsToPivot, aggregationDimensions, aggregator)
+//     //console.log(pivot.data.table)
+
+//     const pivotData: string[][] = []
+//     for (const row of pivot.data.table) {
+//         const pivotRow: string[] = []
+//         for (const col of row.value) {
+//             pivotRow.push(col)
+//             //console.log(col)
+//         }
+//         pivotData.push(pivotRow)
+//     }
+//     //console.log(pivotData)
+//     //console.log(csvData);
+//       const wb = xlsx.utils.book_new()
+//       const ws = xlsx.utils.aoa_to_sheet(pivotData)
+//       xlsx.utils.book_append_sheet(wb, ws, 'dependencies')
+//       xlsx.writeFile(wb, 'dependencies.xlsx')
 
 //   } catch (error) {
 //     if (error instanceof Error) core.setFailed(error.message)

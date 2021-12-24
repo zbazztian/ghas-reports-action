@@ -33,12 +33,38 @@ async function run(): Promise<void> {
     //get the dependency graph report for repo.
     const dgInfo: string[][] = await getDependencyGraphReport(login, repoName)
 
+    const Pivot = require('quick-pivot')
+
+    const dgPivotData: string[][] = generatePivot(
+      'manifest',
+      'licenseInfo',
+      'packageName',
+      'count',
+      Pivot,
+      dgInfo
+    )
+
+    const csPivotData: string[][] = generatePivot(
+      'rule',
+      'severity',
+      'html_url',
+      'count',
+      Pivot,
+      csIssues
+    )
+
+    //console.log(pivotData)
+
     //create an excel file with the dataset
     const wb = xlsx.utils.book_new()
     const ws = xlsx.utils.aoa_to_sheet(csIssues)
     const ws1 = xlsx.utils.aoa_to_sheet(dgInfo)
+    const ws2 = xlsx.utils.aoa_to_sheet(dgPivotData)
+    const ws3 = xlsx.utils.aoa_to_sheet(csPivotData)
     xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues')
     xlsx.utils.book_append_sheet(wb, ws1, 'dependencies-list')
+    xlsx.utils.book_append_sheet(wb, ws2, 'dependencies-Pivot')
+    xlsx.utils.book_append_sheet(wb, ws3, 'code-scanning-Pivot')
     xlsx.writeFile(wb, 'alerts.xlsx')
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
@@ -46,6 +72,38 @@ async function run(): Promise<void> {
 }
 
 run()
+
+function generatePivot(
+  rowHeader: string,
+  colHeader: string,
+  aggregationHeader: string,
+  aggregator: string,
+  Pivot: any,
+  dgInfo: string[][]
+): string[][] {
+  const columnsToPivot = [`${colHeader}`]
+  const rowsToPivot = [`${rowHeader}`]
+  const aggregationDimensions = [`${aggregationHeader}`]
+  //const aggregator = 'count'
+  const pivot = new Pivot(
+    dgInfo,
+    rowsToPivot,
+    columnsToPivot,
+    aggregationDimensions,
+    aggregator
+  )
+  //console.log(pivot.data.table)
+  const pivotData: string[][] = []
+  for (const row of pivot.data.table) {
+    const pivotRow: string[] = []
+    for (const col of row.value) {
+      pivotRow.push(col)
+      //console.log(col)
+    }
+    pivotData.push(pivotRow)
+  }
+  return pivotData
+}
 
 async function getCodeScanningReport(
   login: string,
@@ -149,7 +207,8 @@ async function getDependencyGraphReport(
   for (const dependency of repository.dependencyGraphManifests.edges) {
     for (const dependencyEdge of dependency.node.dependencies.edges) {
       let licenseInfo = ''
-      if ( //null checks in case a dependency has no license info
+      if (
+        //null checks in case a dependency has no license info
         dependencyEdge.node &&
         dependencyEdge.node.repository &&
         dependencyEdge.node.repository.licenseInfo
