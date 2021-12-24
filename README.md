@@ -12,6 +12,12 @@ If you would like to explore the these APIs using postman, plese see the [postma
 #### code-scanning-issues sheet
 <img width="717" alt="Screenshot 2021-12-20 at 12 26 38 AM" src="https://user-images.githubusercontent.com/23517709/146687360-b04a651f-6e06-4b40-8b0a-d436e50c68b4.png">
 
+#### dependencies-pivot sheet
+![image](https://user-images.githubusercontent.com/23517709/147328752-73398082-421b-4429-b7cb-0059eeab3abb.png)
+
+#### code-scanning-pivot sheet
+![image](https://user-images.githubusercontent.com/23517709/147328828-6453d99e-2cd0-4ccd-a812-100446248854.png)
+
 
 ## Using to the Action
 
