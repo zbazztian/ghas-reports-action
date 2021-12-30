@@ -115,23 +115,44 @@ function getCodeScanningReport(login, repoName, octokit) {
         const csvData = [];
         const header = [
             'toolName',
+            'toolVersion',
             'alertNumber',
             'htmlUrl',
             'state',
             'rule',
-            'severity'
+            'severity',
+            'security severity',
+            'location',
+            'start-line',
+            'end-line',
+            'createdAt',
+            'updatedAt',
+            'fixedAt',
+            'dismissedAt',
+            'dismissedBy',
+            'dismissalReason'
         ];
         csvData.push(header);
         //iterate over the data and print the alert information
         for (const alert of data) {
             //create an array of string values
+            const rule = alert.rule;
+            const _alert = alert;
             const row = [
                 alert.tool.name,
+                alert.tool.version,
                 alert.number.toString(),
                 alert.html_url,
                 alert.state,
-                alert.rule.id,
-                alert.rule.severity
+                rule.id,
+                rule.severity,
+                rule.security_severity_level,
+                _alert.location.path,
+                _alert.location.start_line,
+                _alert.location.end_line,
+                alert.created_at,
+                alert.dismissed_at,
+                alert.dismissed_by
             ];
             csvData.push(row);
         }

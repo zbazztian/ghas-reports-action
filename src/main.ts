@@ -123,24 +123,46 @@ async function getCodeScanningReport(
   const csvData: string[][] = []
   const header: string[] = [
     'toolName',
+    'toolVersion',
     'alertNumber',
     'htmlUrl',
     'state',
     'rule',
-    'severity'
+    'severity',
+    'security severity',
+    'location',
+    'start-line',
+    'end-line',
+    'createdAt',
+    'updatedAt',
+    'fixedAt',
+    'dismissedAt',
+    'dismissedBy'
   ]
 
   csvData.push(header)
   //iterate over the data and print the alert information
   for (const alert of data) {
     //create an array of string values
+    const rule: any = alert.rule
+    const _alert: any = alert
     const row: string[] = [
       alert.tool.name!,
+      alert.tool.version!,
       alert.number.toString(),
       alert.html_url,
       alert.state,
-      alert.rule.id!,
-      alert.rule.severity!
+      rule.id,
+      rule.severity,
+      rule.security_severity_level,
+      _alert.most_recent_instance.location.path,
+      _alert.most_recent_instance.location.start_line,
+      _alert.most_recent_instance.location.end_line,
+      alert.created_at,
+      _alert.updated_at,
+      _alert.fixed_at,
+      alert.dismissed_at,
+      alert.dismissed_by
     ]
 
     csvData.push(row)
