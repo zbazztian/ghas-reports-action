@@ -36,8 +36,8 @@ async function run(): Promise<void> {
     const Pivot = require('quick-pivot')
 
     const dgPivotData: string[][] = generatePivot(
-      'manifest',
-      'licenseInfo',
+      ['manifest'],
+      ['licenseInfo'],
       'packageName',
       'count',
       Pivot,
@@ -45,8 +45,8 @@ async function run(): Promise<void> {
     )
 
     const csPivotData: string[][] = generatePivot(
-      'rule',
-      'severity',
+      ['rule'],
+      ['severity'],
       'html_url',
       'count',
       Pivot,
@@ -74,21 +74,21 @@ async function run(): Promise<void> {
 run()
 
 function generatePivot(
-  rowHeader: string,
-  colHeader: string,
+  rowHeader: string[],
+  colHeader: string[],
   aggregationHeader: string,
   aggregator: string,
   Pivot: any,
   dgInfo: string[][]
 ): string[][] {
-  const columnsToPivot = [`${colHeader}`]
-  const rowsToPivot = [`${rowHeader}`]
+  //const columnsToPivot = [`${colHeader}`]
+  //const rowsToPivot = [`${rowHeader}`]
   const aggregationDimensions = [`${aggregationHeader}`]
   //const aggregator = 'count'
   const pivot = new Pivot(
     dgInfo,
-    rowsToPivot,
-    columnsToPivot,
+    rowHeader,
+    colHeader,
     aggregationDimensions,
     aggregator
   )
@@ -129,7 +129,6 @@ async function getCodeScanningReport(
     'state',
     'rule',
     'severity',
-    'security severity',
     'location',
     'start-line',
     'end-line',
@@ -145,6 +144,12 @@ async function getCodeScanningReport(
   for (const alert of data) {
     //create an array of string values
     const rule: any = alert.rule
+    let securitySeverity = ''
+    if (rule.security_severity_level) {
+      securitySeverity = rule.security_severity_level
+    } else {
+      securitySeverity = rule.severity
+    }
     const _alert: any = alert
     const row: string[] = [
       alert.tool.name!,
@@ -153,8 +158,7 @@ async function getCodeScanningReport(
       alert.html_url,
       alert.state,
       rule.id,
-      rule.severity,
-      rule.security_severity_level,
+      securitySeverity,
       alert.most_recent_instance.location!.path,
       alert.most_recent_instance.location!.start_line,
       alert.most_recent_instance.location!.end_line,

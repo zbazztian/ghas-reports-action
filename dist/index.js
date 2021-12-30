@@ -64,8 +64,8 @@ function run() {
             //get the dependency graph report for repo.
             const dgInfo = yield getDependencyGraphReport(login, repoName);
             const Pivot = __nccwpck_require__(7650);
-            const dgPivotData = generatePivot('manifest', 'licenseInfo', 'packageName', 'count', Pivot, dgInfo);
-            const csPivotData = generatePivot('rule', 'severity', 'html_url', 'count', Pivot, csIssues);
+            const dgPivotData = generatePivot(['manifest'], ['licenseInfo'], 'packageName', 'count', Pivot, dgInfo);
+            const csPivotData = generatePivot(['rule'], ['severity'], 'html_url', 'count', Pivot, csIssues);
             //console.log(pivotData)
             //create an excel file with the dataset
             const wb = xlsx.utils.book_new();
@@ -87,11 +87,11 @@ function run() {
 }
 run();
 function generatePivot(rowHeader, colHeader, aggregationHeader, aggregator, Pivot, dgInfo) {
-    const columnsToPivot = [`${colHeader}`];
-    const rowsToPivot = [`${rowHeader}`];
+    //const columnsToPivot = [`${colHeader}`]
+    //const rowsToPivot = [`${rowHeader}`]
     const aggregationDimensions = [`${aggregationHeader}`];
     //const aggregator = 'count'
-    const pivot = new Pivot(dgInfo, rowsToPivot, columnsToPivot, aggregationDimensions, aggregator);
+    const pivot = new Pivot(dgInfo, rowHeader, colHeader, aggregationDimensions, aggregator);
     //console.log(pivot.data.table)
     const pivotData = [];
     for (const row of pivot.data.table) {
@@ -121,7 +121,6 @@ function getCodeScanningReport(login, repoName, octokit) {
             'state',
             'rule',
             'severity',
-            'security severity',
             'location',
             'start-line',
             'end-line',
@@ -136,6 +135,13 @@ function getCodeScanningReport(login, repoName, octokit) {
         for (const alert of data) {
             //create an array of string values
             const rule = alert.rule;
+            let securitySeverity = '';
+            if (rule.security_severity_level) {
+                securitySeverity = rule.security_severity_level;
+            }
+            else {
+                securitySeverity = rule.severity;
+            }
             const _alert = alert;
             const row = [
                 alert.tool.name,
@@ -144,8 +150,7 @@ function getCodeScanningReport(login, repoName, octokit) {
                 alert.html_url,
                 alert.state,
                 rule.id,
-                rule.severity,
-                rule.security_severity_level,
+                securitySeverity,
                 alert.most_recent_instance.location.path,
                 alert.most_recent_instance.location.start_line,
                 alert.most_recent_instance.location.end_line,
