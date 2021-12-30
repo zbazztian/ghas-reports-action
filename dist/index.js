@@ -129,8 +129,7 @@ function getCodeScanningReport(login, repoName, octokit) {
             'updatedAt',
             'fixedAt',
             'dismissedAt',
-            'dismissedBy',
-            'dismissalReason'
+            'dismissedBy'
         ];
         csvData.push(header);
         //iterate over the data and print the alert information
@@ -147,10 +146,12 @@ function getCodeScanningReport(login, repoName, octokit) {
                 rule.id,
                 rule.severity,
                 rule.security_severity_level,
-                _alert.location.path,
-                _alert.location.start_line,
-                _alert.location.end_line,
+                alert.most_recent_instance.location.path,
+                alert.most_recent_instance.location.start_line,
+                alert.most_recent_instance.location.end_line,
                 alert.created_at,
+                _alert.updated_at,
+                _alert.fixed_at,
                 alert.dismissed_at,
                 alert.dismissed_by
             ];
