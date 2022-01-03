@@ -48,9 +48,13 @@ function run() {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const token = core.getInput('token');
+            if (!token) {
+                core.error('please set the INPUT_TOKEN env variable');
+            }
             //fetch data using octokit api
             const octokit = new rest_1.Octokit({
-                auth: core.getInput('token') //get the token from the action inputs.
+                auth: token //get the token from the action inputs.
             });
             const context = github.context; //find the repo and owner from the github context
             let login = (_b = (_a = context.payload) === null || _a === void 0 ? void 0 : _a.repository) === null || _b === void 0 ? void 0 : _b.owner.login;
@@ -60,8 +64,13 @@ function run() {
                 //set the INPUT_TOKEN and GITHUB_REPOSITORY (to login/reponame) env variables
                 core.error('No login found, using GITHUB_REPOSITORY');
                 const repo = process.env.GITHUB_REPOSITORY;
-                login = repo.split('/')[0];
-                repoName = repo.split('/')[1];
+                if (repo) {
+                    login = repo.split('/')[0];
+                    repoName = repo.split('/')[1];
+                }
+                else {
+                    core.error('please set the GITHUB_REPOSITORY env variable');
+                }
             }
             //get the code scanning report for repo.
             const csIssues = yield getCodeScanningReport(login, repoName, octokit);
@@ -241,7 +250,7 @@ function getDependencyGraphReport(login, repoName) {
         return csvData;
     });
 }
-
+//# sourceMappingURL=main.js.map
 
 /***/ }),
 
