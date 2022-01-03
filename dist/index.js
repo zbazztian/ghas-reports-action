@@ -34,11 +34,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const xlsx = __importStar(__nccwpck_require__(4487));
 const rest_1 = __nccwpck_require__(5375); //import to call rest api
+const quick_pivot_1 = __importDefault(__nccwpck_require__(7650));
 const graphql_1 = __nccwpck_require__(8467); //import to call graphql api
 function run() {
     var _a, _b, _c, _d;
@@ -63,9 +67,9 @@ function run() {
             const csIssues = yield getCodeScanningReport(login, repoName, octokit);
             //get the dependency graph report for repo.
             const dgInfo = yield getDependencyGraphReport(login, repoName);
-            const Pivot = __nccwpck_require__(7650);
-            const dgPivotData = generatePivot(['manifest'], ['licenseInfo'], 'packageName', 'count', Pivot, dgInfo);
-            const csPivotData = generatePivot(['rule'], ['severity'], 'html_url', 'count', Pivot, csIssues);
+            // const Pivot = require('quick-pivot')
+            const dgPivotData = generatePivot(['manifest'], ['licenseInfo'], 'packageName', 'count', dgInfo);
+            const csPivotData = generatePivot(['rule'], ['severity'], 'html_url', 'count', csIssues);
             //console.log(pivotData)
             //create an excel file with the dataset
             const wb = xlsx.utils.book_new();
@@ -86,12 +90,12 @@ function run() {
     });
 }
 run();
-function generatePivot(rowHeader, colHeader, aggregationHeader, aggregator, Pivot, dgInfo) {
+function generatePivot(rowHeader, colHeader, aggregationHeader, aggregator, dgInfo) {
     //const columnsToPivot = [`${colHeader}`]
     //const rowsToPivot = [`${rowHeader}`]
     const aggregationDimensions = [`${aggregationHeader}`];
     //const aggregator = 'count'
-    const pivot = new Pivot(dgInfo, rowHeader, colHeader, aggregationDimensions, aggregator);
+    const pivot = new quick_pivot_1.default(dgInfo, rowHeader, colHeader, aggregationDimensions, aggregator);
     //console.log(pivot.data.table)
     const pivotData = [];
     for (const row of pivot.data.table) {

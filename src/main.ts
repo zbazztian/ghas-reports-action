@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as xlsx from 'xlsx'
 import {Octokit} from '@octokit/rest' //import to call rest api
+import Pivot from 'quick-pivot'
 import {graphql} from '@octokit/graphql' //import to call graphql api
 
 async function run(): Promise<void> {
@@ -33,14 +34,13 @@ async function run(): Promise<void> {
     //get the dependency graph report for repo.
     const dgInfo: string[][] = await getDependencyGraphReport(login, repoName)
 
-    const Pivot = require('quick-pivot')
+    // const Pivot = require('quick-pivot')
 
     const dgPivotData: string[][] = generatePivot(
       ['manifest'],
       ['licenseInfo'],
       'packageName',
       'count',
-      Pivot,
       dgInfo
     )
 
@@ -49,7 +49,6 @@ async function run(): Promise<void> {
       ['severity'],
       'html_url',
       'count',
-      Pivot,
       csIssues
     )
 
@@ -78,7 +77,6 @@ function generatePivot(
   colHeader: string[],
   aggregationHeader: string,
   aggregator: string,
-  Pivot: any,
   dgInfo: string[][]
 ): string[][] {
   //const columnsToPivot = [`${colHeader}`]
