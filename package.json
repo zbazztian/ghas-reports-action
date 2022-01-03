@@ -22,7 +22,7 @@
     "node",
     "setup"
   ],
-  "author": "",
+  "author": "amitgupta7@github.com",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.6.0",
