@@ -26,7 +26,7 @@ The action require a github personal access token passed in the workflow file. T
 The action creates alert.xlsx file in the workspace, which needs to be uploaded using the upload-artifact action.
 
       # Generate issues and save results
-      - uses: amitgupta7/ghas-reports-action@v3
+      - uses: amitgupta7/ghas-reports-action@v3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
