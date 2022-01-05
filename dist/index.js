@@ -133,6 +133,7 @@ function getCodeScanningReport(login, repoName, octokit) {
             'htmlUrl',
             'state',
             'rule',
+            'cwe',
             'severity',
             'location',
             'start-line',
@@ -149,12 +150,19 @@ function getCodeScanningReport(login, repoName, octokit) {
             //create an array of string values
             const rule = alert.rule;
             let securitySeverity = '';
+            let securityCwe = '';
             if (rule.security_severity_level) {
                 securitySeverity = rule.security_severity_level;
             }
             else {
                 securitySeverity = rule.severity;
             }
+            for (const cwe of rule.tags) {
+                if (cwe.includes('external/cwe/cwe')) {
+                    securityCwe = `${securityCwe}${cwe}, `;
+                }
+            }
+            securityCwe = securityCwe.replace(/,\s*$/, '');
             const _alert = alert;
             const row = [
                 alert.tool.name,
@@ -163,6 +171,7 @@ function getCodeScanningReport(login, repoName, octokit) {
                 alert.html_url,
                 alert.state,
                 rule.id,
+                securityCwe,
                 securitySeverity,
                 alert.most_recent_instance.location.path,
                 alert.most_recent_instance.location.start_line,

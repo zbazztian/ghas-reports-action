@@ -135,6 +135,7 @@ async function getCodeScanningReport(
     'htmlUrl',
     'state',
     'rule',
+    'cwe',
     'severity',
     'location',
     'start-line',
@@ -152,11 +153,18 @@ async function getCodeScanningReport(
     //create an array of string values
     const rule: any = alert.rule
     let securitySeverity = ''
+    let securityCwe = ''
     if (rule.security_severity_level) {
       securitySeverity = rule.security_severity_level
     } else {
       securitySeverity = rule.severity
     }
+    for (const cwe of rule.tags) {
+      if (cwe.includes('external/cwe/cwe')) {
+        securityCwe = `${securityCwe}${cwe}, `
+      }
+    }
+    securityCwe = securityCwe.replace(/,\s*$/, '')
     const _alert: any = alert
     const row: string[] = [
       alert.tool.name!,
@@ -165,6 +173,7 @@ async function getCodeScanningReport(
       alert.html_url,
       alert.state,
       rule.id,
+      securityCwe,
       securitySeverity,
       alert.most_recent_instance.location!.path,
       alert.most_recent_instance.location!.start_line,
