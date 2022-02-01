@@ -76,6 +76,8 @@ function run() {
             const csIssues = yield getCodeScanningReport(login, repoName, octokit);
             //get the dependency graph report for repo.
             const dgInfo = yield getDependencyGraphReport(login, repoName);
+            //fetch secret scanning alerts from github repo
+            const secretScanningAlerts = yield getSecretScanningReport(octokit, login, repoName);
             // const Pivot = require('quick-pivot')
             const dgPivotData = generatePivot(['manifest'], ['licenseInfo'], 'packageName', 'count', dgInfo);
             const csPivotData = generatePivot(['rule'], ['severity'], 'html_url', 'count', csIssues);
@@ -86,10 +88,12 @@ function run() {
             const ws1 = xlsx.utils.aoa_to_sheet(dgInfo);
             const ws2 = xlsx.utils.aoa_to_sheet(dgPivotData);
             const ws3 = xlsx.utils.aoa_to_sheet(csPivotData);
+            const ws4 = xlsx.utils.aoa_to_sheet(secretScanningAlerts);
             xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues');
             xlsx.utils.book_append_sheet(wb, ws1, 'dependencies-list');
-            xlsx.utils.book_append_sheet(wb, ws2, 'dependencies-Pivot');
+            xlsx.utils.book_append_sheet(wb, ws2, 'dependencies-license-pivot');
             xlsx.utils.book_append_sheet(wb, ws3, 'code-scanning-Pivot');
+            xlsx.utils.book_append_sheet(wb, ws4, 'secret-scanning-alerts');
             xlsx.writeFile(wb, 'alerts.xlsx');
         }
         catch (error) {
@@ -99,6 +103,34 @@ function run() {
     });
 }
 run();
+function getSecretScanningReport(octokit, login, repoName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const secretScanningAlerts = yield octokit.paginate(octokit.rest.secretScanning.listAlertsForRepo, {
+            owner: login,
+            repo: repoName
+        });
+        const csvData = [];
+        const header = [
+            'html_url',
+            'secret_type',
+            'secret',
+            'state',
+            'resolution'
+        ];
+        csvData.push(header);
+        for (const alert of secretScanningAlerts) {
+            const row = [
+                alert.html_url,
+                alert.secret_type,
+                alert.secret,
+                alert.state,
+                alert.resolution
+            ];
+            csvData.push(row);
+        }
+        return csvData;
+    });
+}
 function generatePivot(rowHeader, colHeader, aggregationHeader, aggregator, dgInfo) {
     //const columnsToPivot = [`${colHeader}`]
     //const rowsToPivot = [`${rowHeader}`]

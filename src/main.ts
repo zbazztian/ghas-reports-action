@@ -43,6 +43,13 @@ async function run(): Promise<void> {
     //get the dependency graph report for repo.
     const dgInfo: string[][] = await getDependencyGraphReport(login, repoName)
 
+    //fetch secret scanning alerts from github repo
+    const secretScanningAlerts: string[][] = await getSecretScanningReport(
+      octokit,
+      login,
+      repoName
+    )
+
     // const Pivot = require('quick-pivot')
 
     const dgPivotData: string[][] = generatePivot(
@@ -69,10 +76,14 @@ async function run(): Promise<void> {
     const ws1 = xlsx.utils.aoa_to_sheet(dgInfo)
     const ws2 = xlsx.utils.aoa_to_sheet(dgPivotData)
     const ws3 = xlsx.utils.aoa_to_sheet(csPivotData)
+    const ws4 = xlsx.utils.aoa_to_sheet(secretScanningAlerts)
+
     xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues')
     xlsx.utils.book_append_sheet(wb, ws1, 'dependencies-list')
-    xlsx.utils.book_append_sheet(wb, ws2, 'dependencies-Pivot')
+    xlsx.utils.book_append_sheet(wb, ws2, 'dependencies-license-pivot')
     xlsx.utils.book_append_sheet(wb, ws3, 'code-scanning-Pivot')
+    xlsx.utils.book_append_sheet(wb, ws4, 'secret-scanning-alerts')
+
     xlsx.writeFile(wb, 'alerts.xlsx')
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
@@ -80,6 +91,43 @@ async function run(): Promise<void> {
 }
 
 run()
+
+async function getSecretScanningReport(
+  octokit: Octokit,
+  login: string,
+  repoName: string
+): Promise<string[][]> {
+  const secretScanningAlerts = await octokit.paginate(
+    octokit.rest.secretScanning.listAlertsForRepo,
+    {
+      owner: login,
+      repo: repoName
+    }
+  )
+
+  const csvData: string[][] = []
+  const header: string[] = [
+    'html_url',
+    'secret_type',
+    'secret',
+    'state',
+    'resolution'
+  ]
+
+  csvData.push(header)
+  for (const alert of secretScanningAlerts) {
+    const row: string[] = [
+      alert.html_url!,
+      alert.secret_type!,
+      alert.secret!,
+      alert.state!,
+      alert.resolution!
+    ]
+    csvData.push(row)
+  }
+
+  return csvData
+}
 
 function generatePivot(
   rowHeader: string[],
