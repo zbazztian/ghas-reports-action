@@ -105,30 +105,39 @@ function run() {
 run();
 function getSecretScanningReport(octokit, login, repoName) {
     return __awaiter(this, void 0, void 0, function* () {
-        const secretScanningAlerts = yield octokit.paginate(octokit.rest.secretScanning.listAlertsForRepo, {
-            owner: login,
-            repo: repoName
-        });
         const csvData = [];
-        const header = [
-            'html_url',
-            'secret_type',
-            'secret',
-            'state',
-            'resolution'
-        ];
-        csvData.push(header);
-        for (const alert of secretScanningAlerts) {
-            const row = [
-                alert.html_url,
-                alert.secret_type,
-                alert.secret,
-                alert.state,
-                alert.resolution
+        try {
+            const secretScanningAlerts = yield octokit.paginate(octokit.rest.secretScanning.listAlertsForRepo, {
+                owner: login,
+                repo: repoName
+            });
+            const header = [
+                'html_url',
+                'secret_type',
+                'secret',
+                'state',
+                'resolution'
             ];
-            csvData.push(row);
+            csvData.push(header);
+            for (const alert of secretScanningAlerts) {
+                const row = [
+                    alert.html_url,
+                    alert.secret_type,
+                    alert.secret,
+                    alert.state,
+                    alert.resolution
+                ];
+                csvData.push(row);
+            }
+            return csvData;
         }
-        return csvData;
+        catch (error) {
+            if (error instanceof Error) {
+                core.error(error.message);
+                csvData.push([error.message, '', '', '', '']);
+            }
+            return csvData;
+        }
     });
 }
 function generatePivot(rowHeader, colHeader, aggregationHeader, aggregator, dgInfo) {

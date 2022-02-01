@@ -97,36 +97,44 @@ async function getSecretScanningReport(
   login: string,
   repoName: string
 ): Promise<string[][]> {
-  const secretScanningAlerts = await octokit.paginate(
-    octokit.rest.secretScanning.listAlertsForRepo,
-    {
-      owner: login,
-      repo: repoName
-    }
-  )
-
   const csvData: string[][] = []
-  const header: string[] = [
-    'html_url',
-    'secret_type',
-    'secret',
-    'state',
-    'resolution'
-  ]
 
-  csvData.push(header)
-  for (const alert of secretScanningAlerts) {
-    const row: string[] = [
-      alert.html_url!,
-      alert.secret_type!,
-      alert.secret!,
-      alert.state!,
-      alert.resolution!
+  try {
+    const secretScanningAlerts = await octokit.paginate(
+      octokit.rest.secretScanning.listAlertsForRepo,
+      {
+        owner: login,
+        repo: repoName
+      }
+    )
+
+    const header: string[] = [
+      'html_url',
+      'secret_type',
+      'secret',
+      'state',
+      'resolution'
     ]
-    csvData.push(row)
-  }
 
-  return csvData
+    csvData.push(header)
+    for (const alert of secretScanningAlerts) {
+      const row: string[] = [
+        alert.html_url!,
+        alert.secret_type!,
+        alert.secret!,
+        alert.state!,
+        alert.resolution!
+      ]
+      csvData.push(row)
+    }
+    return csvData
+  } catch (error) {
+    if (error instanceof Error) {
+      core.error(error.message)
+      csvData.push([error.message, '', '', '', ''])
+    }
+    return csvData
+  }
 }
 
 function generatePivot(
