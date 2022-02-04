@@ -33,6 +33,9 @@ async function run(): Promise<void> {
       }
     }
 
+    //get dependency graph vulnerability report
+    const dgIssues: string[][] = await getDependabotReport(login, repoName)
+
     //get the code scanning report for repo.
     const csIssues: string[][] = await getCodeScanningReport(
       login,
@@ -61,7 +64,7 @@ async function run(): Promise<void> {
     )
 
     const csPivotData: string[][] = generatePivot(
-      ['rule'],
+      ['cwe'],
       ['severity'],
       'html_url',
       'count',
@@ -77,12 +80,14 @@ async function run(): Promise<void> {
     const ws2 = xlsx.utils.aoa_to_sheet(dgPivotData)
     const ws3 = xlsx.utils.aoa_to_sheet(csPivotData)
     const ws4 = xlsx.utils.aoa_to_sheet(secretScanningAlerts)
+    const ws5 = xlsx.utils.aoa_to_sheet(dgIssues)
 
     xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues')
     xlsx.utils.book_append_sheet(wb, ws1, 'dependencies-list')
     xlsx.utils.book_append_sheet(wb, ws2, 'dependencies-license-pivot')
     xlsx.utils.book_append_sheet(wb, ws3, 'code-scanning-Pivot')
     xlsx.utils.book_append_sheet(wb, ws4, 'secret-scanning-alerts')
+    xlsx.utils.book_append_sheet(wb, ws5, 'software-composition-analysis')
 
     xlsx.writeFile(wb, 'alerts.xlsx')
   } catch (error) {
@@ -323,6 +328,78 @@ async function getDependencyGraphReport(
 
       csvData.push(row)
     }
+  }
+  return csvData
+}
+
+async function getDependabotReport(
+  login: string,
+  repoName: string
+): Promise<string[][]> {
+  //get the dependency graph for the repo and parse the data
+  const {repository} = await graphql(
+    `
+      {
+        repository(owner: "${login}", name: "${repoName}") {
+          vulnerabilityAlerts(first: 100) {
+            nodes {
+              createdAt
+              dismissedAt
+              securityVulnerability {
+                package {
+                  name
+                  ecosystem
+                }
+                advisory {
+                  description
+                  permalink
+                  severity
+                  ghsaId
+                }
+                firstPatchedVersion {
+                  identifier
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+    {
+      headers: {
+        authorization: `token ${core.getInput('token')}`,
+        accept: 'application/vnd.github.hawkgirl-preview+json'
+      }
+    }
+  )
+
+  const csvData: string[][] = []
+  const header: string[] = [
+    'ghsaId',
+    'packageName',
+    'packageManager',
+    'severity',
+    'firstPatchedVersion',
+    'description'
+  ]
+
+  csvData.push(header)
+  for (const dependency of repository.vulnerabilityAlerts.nodes) {
+    core.error(JSON.stringify(dependency))
+    let version = 'na'
+    if (dependency.securityVulnerability.firstPatchedVersion != null)
+      version = dependency.securityVulnerability.firstPatchedVersion.identifier
+
+    const row: string[] = [
+      dependency.securityVulnerability.advisory.ghsaId,
+      dependency.securityVulnerability.package.name,
+      dependency.securityVulnerability.package.ecosystem,
+      dependency.securityVulnerability.advisory.severity,
+      version,
+      dependency.securityVulnerability.advisory.description
+    ]
+
+    csvData.push(row)
   }
   return csvData
 }

@@ -72,6 +72,8 @@ function run() {
                     core.error('please set the GITHUB_REPOSITORY env variable');
                 }
             }
+            //get dependency graph vulnerability report
+            const dgIssues = yield getDependabotReport(login, repoName);
             //get the code scanning report for repo.
             const csIssues = yield getCodeScanningReport(login, repoName, octokit);
             //get the dependency graph report for repo.
@@ -80,7 +82,7 @@ function run() {
             const secretScanningAlerts = yield getSecretScanningReport(octokit, login, repoName);
             // const Pivot = require('quick-pivot')
             const dgPivotData = generatePivot(['manifest'], ['licenseInfo'], 'packageName', 'count', dgInfo);
-            const csPivotData = generatePivot(['rule'], ['severity'], 'html_url', 'count', csIssues);
+            const csPivotData = generatePivot(['cwe'], ['severity'], 'html_url', 'count', csIssues);
             //console.log(pivotData)
             //create an excel file with the dataset
             const wb = xlsx.utils.book_new();
@@ -89,11 +91,13 @@ function run() {
             const ws2 = xlsx.utils.aoa_to_sheet(dgPivotData);
             const ws3 = xlsx.utils.aoa_to_sheet(csPivotData);
             const ws4 = xlsx.utils.aoa_to_sheet(secretScanningAlerts);
+            const ws5 = xlsx.utils.aoa_to_sheet(dgIssues);
             xlsx.utils.book_append_sheet(wb, ws, 'code-scanning-issues');
             xlsx.utils.book_append_sheet(wb, ws1, 'dependencies-list');
             xlsx.utils.book_append_sheet(wb, ws2, 'dependencies-license-pivot');
             xlsx.utils.book_append_sheet(wb, ws3, 'code-scanning-Pivot');
             xlsx.utils.book_append_sheet(wb, ws4, 'secret-scanning-alerts');
+            xlsx.utils.book_append_sheet(wb, ws5, 'software-composition-analysis');
             xlsx.writeFile(wb, 'alerts.xlsx');
         }
         catch (error) {
@@ -296,6 +300,69 @@ function getDependencyGraphReport(login, repoName) {
                 ];
                 csvData.push(row);
             }
+        }
+        return csvData;
+    });
+}
+function getDependabotReport(login, repoName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        //get the dependency graph for the repo and parse the data
+        const { repository } = yield (0, graphql_1.graphql)(`
+      {
+        repository(owner: "${login}", name: "${repoName}") {
+          vulnerabilityAlerts(first: 100) {
+            nodes {
+              createdAt
+              dismissedAt
+              securityVulnerability {
+                package {
+                  name
+                  ecosystem
+                }
+                advisory {
+                  description
+                  permalink
+                  severity
+                  ghsaId
+                }
+                firstPatchedVersion {
+                  identifier
+                }
+              }
+            }
+          }
+        }
+      }
+    `, {
+            headers: {
+                authorization: `token ${core.getInput('token')}`,
+                accept: 'application/vnd.github.hawkgirl-preview+json'
+            }
+        });
+        const csvData = [];
+        const header = [
+            'ghsaId',
+            'packageName',
+            'packageManager',
+            'severity',
+            'firstPatchedVersion',
+            'description'
+        ];
+        csvData.push(header);
+        for (const dependency of repository.vulnerabilityAlerts.nodes) {
+            core.error(JSON.stringify(dependency));
+            let version = 'na';
+            if (dependency.securityVulnerability.firstPatchedVersion != null)
+                version = dependency.securityVulnerability.firstPatchedVersion.identifier;
+            const row = [
+                dependency.securityVulnerability.advisory.ghsaId,
+                dependency.securityVulnerability.package.name,
+                dependency.securityVulnerability.package.ecosystem,
+                dependency.securityVulnerability.advisory.severity,
+                version,
+                dependency.securityVulnerability.advisory.description
+            ];
+            csvData.push(row);
         }
         return csvData;
     });
