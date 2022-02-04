@@ -306,8 +306,19 @@ function getDependencyGraphReport(login, repoName) {
 }
 function getDependabotReport(login, repoName) {
     return __awaiter(this, void 0, void 0, function* () {
-        //get the dependency graph for the repo and parse the data
-        const { repository } = yield (0, graphql_1.graphql)(`
+        const csvData = [];
+        const header = [
+            'ghsaId',
+            'packageName',
+            'packageManager',
+            'severity',
+            'firstPatchedVersion',
+            'description'
+        ];
+        csvData.push(header);
+        try {
+            //get the dependency graph for the repo and parse the data
+            const { repository } = yield (0, graphql_1.graphql)(`
       {
         repository(owner: "${login}", name: "${repoName}") {
           vulnerabilityAlerts(first: 100) {
@@ -334,37 +345,35 @@ function getDependabotReport(login, repoName) {
         }
       }
     `, {
-            headers: {
-                authorization: `token ${core.getInput('token')}`,
-                accept: 'application/vnd.github.hawkgirl-preview+json'
+                headers: {
+                    authorization: `token ${core.getInput('token')}`,
+                    accept: 'application/vnd.github.hawkgirl-preview+json'
+                }
+            });
+            for (const dependency of repository.vulnerabilityAlerts.nodes) {
+                core.error(JSON.stringify(dependency));
+                let version = 'na';
+                if (dependency.securityVulnerability.firstPatchedVersion != null)
+                    version = dependency.securityVulnerability.firstPatchedVersion.identifier;
+                const row = [
+                    dependency.securityVulnerability.advisory.ghsaId,
+                    dependency.securityVulnerability.package.name,
+                    dependency.securityVulnerability.package.ecosystem,
+                    dependency.securityVulnerability.advisory.severity,
+                    version,
+                    dependency.securityVulnerability.advisory.description
+                ];
+                csvData.push(row);
             }
-        });
-        const csvData = [];
-        const header = [
-            'ghsaId',
-            'packageName',
-            'packageManager',
-            'severity',
-            'firstPatchedVersion',
-            'description'
-        ];
-        csvData.push(header);
-        for (const dependency of repository.vulnerabilityAlerts.nodes) {
-            core.error(JSON.stringify(dependency));
-            let version = 'na';
-            if (dependency.securityVulnerability.firstPatchedVersion != null)
-                version = dependency.securityVulnerability.firstPatchedVersion.identifier;
-            const row = [
-                dependency.securityVulnerability.advisory.ghsaId,
-                dependency.securityVulnerability.package.name,
-                dependency.securityVulnerability.package.ecosystem,
-                dependency.securityVulnerability.advisory.severity,
-                version,
-                dependency.securityVulnerability.advisory.description
-            ];
-            csvData.push(row);
+            return csvData;
         }
-        return csvData;
+        catch (error) {
+            if (error instanceof Error) {
+                core.error(error.message);
+                csvData.push([error.message, '', '', '', '']);
+            }
+            return csvData;
+        }
     });
 }
 //# sourceMappingURL=main.js.map

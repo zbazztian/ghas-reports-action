@@ -336,9 +336,22 @@ async function getDependabotReport(
   login: string,
   repoName: string
 ): Promise<string[][]> {
-  //get the dependency graph for the repo and parse the data
-  const {repository} = await graphql(
-    `
+  const csvData: string[][] = []
+  const header: string[] = [
+    'ghsaId',
+    'packageName',
+    'packageManager',
+    'severity',
+    'firstPatchedVersion',
+    'description'
+  ]
+
+  csvData.push(header)
+
+  try {
+    //get the dependency graph for the repo and parse the data
+    const {repository} = await graphql(
+      `
       {
         repository(owner: "${login}", name: "${repoName}") {
           vulnerabilityAlerts(first: 100) {
@@ -365,41 +378,37 @@ async function getDependabotReport(
         }
       }
     `,
-    {
-      headers: {
-        authorization: `token ${core.getInput('token')}`,
-        accept: 'application/vnd.github.hawkgirl-preview+json'
+      {
+        headers: {
+          authorization: `token ${core.getInput('token')}`,
+          accept: 'application/vnd.github.hawkgirl-preview+json'
+        }
       }
+    )
+    for (const dependency of repository.vulnerabilityAlerts.nodes) {
+      core.error(JSON.stringify(dependency))
+      let version = 'na'
+      if (dependency.securityVulnerability.firstPatchedVersion != null)
+        version =
+          dependency.securityVulnerability.firstPatchedVersion.identifier
+
+      const row: string[] = [
+        dependency.securityVulnerability.advisory.ghsaId,
+        dependency.securityVulnerability.package.name,
+        dependency.securityVulnerability.package.ecosystem,
+        dependency.securityVulnerability.advisory.severity,
+        version,
+        dependency.securityVulnerability.advisory.description
+      ]
+
+      csvData.push(row)
     }
-  )
-
-  const csvData: string[][] = []
-  const header: string[] = [
-    'ghsaId',
-    'packageName',
-    'packageManager',
-    'severity',
-    'firstPatchedVersion',
-    'description'
-  ]
-
-  csvData.push(header)
-  for (const dependency of repository.vulnerabilityAlerts.nodes) {
-    core.error(JSON.stringify(dependency))
-    let version = 'na'
-    if (dependency.securityVulnerability.firstPatchedVersion != null)
-      version = dependency.securityVulnerability.firstPatchedVersion.identifier
-
-    const row: string[] = [
-      dependency.securityVulnerability.advisory.ghsaId,
-      dependency.securityVulnerability.package.name,
-      dependency.securityVulnerability.package.ecosystem,
-      dependency.securityVulnerability.advisory.severity,
-      version,
-      dependency.securityVulnerability.advisory.description
-    ]
-
-    csvData.push(row)
+    return csvData
+  } catch (error) {
+    if (error instanceof Error) {
+      core.error(error.message)
+      csvData.push([error.message, '', '', '', ''])
+    }
+    return csvData
   }
-  return csvData
 }
