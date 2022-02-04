@@ -16,7 +16,7 @@ If you would like to explore the these APIs using postman, plese see the [postma
 ![image](https://user-images.githubusercontent.com/23517709/147328752-73398082-421b-4429-b7cb-0059eeab3abb.png)
 
 #### code-scanning-pivot sheet
-![image](https://user-images.githubusercontent.com/23517709/147328828-6453d99e-2cd0-4ccd-a812-100446248854.png)
+![image](https://user-images.githubusercontent.com/23517709/152539730-72f7c44a-43f5-44f4-b3be-35d002f31dd8.png)
 
 #### secret-scanning-alerts sheet
 ![image](https://user-images.githubusercontent.com/23517709/151943026-5153f538-7ce0-4cda-a6f0-cbe638876925.png)
