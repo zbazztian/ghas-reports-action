@@ -36,7 +36,7 @@ The action creates alert.xlsx file in the workspace, which needs to be uploaded 
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/upload-artifact@v3.2
+      - uses: actions/upload-artifact@v3.3
         with:
           name: results
           path: alerts.xlsx          
