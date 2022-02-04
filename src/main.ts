@@ -386,7 +386,6 @@ async function getDependabotReport(
       }
     )
     for (const dependency of repository.vulnerabilityAlerts.nodes) {
-      core.error(JSON.stringify(dependency))
       let version = 'na'
       if (dependency.securityVulnerability.firstPatchedVersion != null)
         version =

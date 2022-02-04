@@ -351,10 +351,10 @@ function getDependabotReport(login, repoName) {
                 }
             });
             for (const dependency of repository.vulnerabilityAlerts.nodes) {
-                core.error(JSON.stringify(dependency));
                 let version = 'na';
                 if (dependency.securityVulnerability.firstPatchedVersion != null)
-                    version = dependency.securityVulnerability.firstPatchedVersion.identifier;
+                    version =
+                        dependency.securityVulnerability.firstPatchedVersion.identifier;
                 const row = [
                     dependency.securityVulnerability.advisory.ghsaId,
                     dependency.securityVulnerability.package.name,
