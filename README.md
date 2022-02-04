@@ -21,6 +21,10 @@ If you would like to explore the these APIs using postman, plese see the [postma
 #### secret-scanning-alerts sheet
 ![image](https://user-images.githubusercontent.com/23517709/151943026-5153f538-7ce0-4cda-a6f0-cbe638876925.png)
 
+#### software-composition-analysis sheet
+![image](https://user-images.githubusercontent.com/23517709/152521657-4c2ab1f2-0d85-45b4-bdb9-feacf6befc91.png)
+
+
 ## Using to the Action
 
 The action require a github personal access token passed in the workflow file. The correct way to do this is to use repository secrets.
