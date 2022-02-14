@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import * as github from '@actions/github'
 import * as xlsx from 'xlsx'
 import {Octokit} from '@octokit/rest' //import to call rest api
 import Pivot from 'quick-pivot'
@@ -16,21 +15,21 @@ async function run(): Promise<void> {
       auth: token //get the token from the action inputs.
     })
 
-    const context = github.context //find the repo and owner from the github context
-    let login: string = context.payload?.repository?.owner.login!
-    let repoName: string = context.payload?.repository?.name!
+    let repo: string = core.getInput('repo')
+    let login = ''
+    let repoName = ''
+    if (!repo) {
+      //required to run locally
+      repo = process.env.GITHUB_REPOSITORY!
+    }
 
-    if (!login || !repoName) {
-      //code to enable running on a local machine without a github context
-      //set the INPUT_TOKEN and GITHUB_REPOSITORY (to login/reponame) env variables
-      core.error('No login found, using GITHUB_REPOSITORY')
-      const repo = process.env.GITHUB_REPOSITORY!
-      if (repo) {
-        login = repo.split('/')[0]
-        repoName = repo.split('/')[1]
-      } else {
-        core.error('please set the GITHUB_REPOSITORY env variable')
-      }
+    if (repo) {
+      login = repo.split('/')[0]
+      repoName = repo.split('/')[1]
+    } else {
+      core.error(
+        'Could not find repo, please set the GITHUB_REPOSITORY env variable'
+      )
     }
 
     //get dependency graph vulnerability report
