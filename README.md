@@ -35,6 +35,8 @@ The action creates alert.xlsx file in the workspace, which needs to be uploaded 
       - uses: amitgupta7/ghas-reports-action@v3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # optionally define repo (default is calling repo)
+          # repo: 'dsp-testing/ghas-intro-6'
 
       - uses: actions/upload-artifact@v3.3
         with:
