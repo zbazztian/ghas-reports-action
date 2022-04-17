@@ -349,11 +349,58 @@ async function getDependabotReport(
 
   try {
     //get the dependency graph for the repo and parse the data
-    const {repository} = await graphql(
-      `
+    let response
+    let after = ''
+    do {
+      response = await fetchAPIResults(login, repoName, after)
+      after = response.repository.vulnerabilityAlerts.pageInfo.endCursor
+      for (const dependency of response.repository.vulnerabilityAlerts.nodes) {
+        let version = 'na'
+        if (dependency.securityVulnerability.firstPatchedVersion != null)
+          version =
+            dependency.securityVulnerability.firstPatchedVersion.identifier
+
+        const row: string[] = [
+          dependency.securityVulnerability.advisory.ghsaId,
+          dependency.securityVulnerability.package.name,
+          dependency.securityVulnerability.package.ecosystem,
+          dependency.securityVulnerability.advisory.severity,
+          version,
+          dependency.securityVulnerability.advisory.description
+        ]
+
+        csvData.push(row)
+      }
+    } while (response.repository.vulnerabilityAlerts.pageInfo.hasNextPage)
+
+    return csvData
+  } catch (error) {
+    if (error instanceof Error) {
+      core.error(error.message)
+      csvData.push([error.message, '', '', '', ''])
+    }
+    return csvData
+  }
+}
+async function fetchAPIResults(
+  login: string,
+  repoName: string,
+  after: string
+): Promise<any> {
+  const response: any = await graphql(getQuery(login, repoName, after), {
+    headers: {
+      authorization: `token ${core.getInput('token')}`,
+      accept: 'application/vnd.github.hawkgirl-preview+json'
+    }
+  })
+  return response
+}
+
+function getQuery(login: string, repoName: string, after: string): string {
+  const query = `
       {
         repository(owner: "${login}", name: "${repoName}") {
-          vulnerabilityAlerts(first: 100) {
+          vulnerabilityAlerts(first: 100 ${after ? `, after: "${after}"` : ''}) {
             nodes {
               createdAt
               dismissedAt
@@ -373,40 +420,14 @@ async function getDependabotReport(
                 }
               }
             }
+            totalCount
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
           }
         }
       }
-    `,
-      {
-        headers: {
-          authorization: `token ${core.getInput('token')}`,
-          accept: 'application/vnd.github.hawkgirl-preview+json'
-        }
-      }
-    )
-    for (const dependency of repository.vulnerabilityAlerts.nodes) {
-      let version = 'na'
-      if (dependency.securityVulnerability.firstPatchedVersion != null)
-        version =
-          dependency.securityVulnerability.firstPatchedVersion.identifier
-
-      const row: string[] = [
-        dependency.securityVulnerability.advisory.ghsaId,
-        dependency.securityVulnerability.package.name,
-        dependency.securityVulnerability.package.ecosystem,
-        dependency.securityVulnerability.advisory.severity,
-        version,
-        dependency.securityVulnerability.advisory.description
-      ]
-
-      csvData.push(row)
-    }
-    return csvData
-  } catch (error) {
-    if (error instanceof Error) {
-      core.error(error.message)
-      csvData.push([error.message, '', '', '', ''])
-    }
-    return csvData
-  }
+    `
+  return query
 }
