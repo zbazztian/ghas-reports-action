@@ -38,7 +38,7 @@ The action creates alert.xlsx file in the workspace, which needs to be uploaded 
           # optionally define repo (default is calling repo)
           # repo: 'dsp-testing/ghas-intro-6'
 
-      - uses: actions/upload-artifact@v3.3
+      - uses: actions/upload-artifact@v3.0.0
         with:
           name: results
           path: alerts.xlsx          
