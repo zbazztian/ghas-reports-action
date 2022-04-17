@@ -361,7 +361,7 @@ function getQuery(login, repoName, after) {
     const query = `
       {
         repository(owner: "${login}", name: "${repoName}") {
-          vulnerabilityAlerts(first: 10 ${after ? `, after: "${after}"` : ''}) {
+          vulnerabilityAlerts(first: 100 ${after ? `, after: "${after}"` : ''}) {
             nodes {
               createdAt
               dismissedAt
