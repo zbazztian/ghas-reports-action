@@ -27,7 +27,10 @@ jobs:
         repo: ${{ matrix.repos }}
         
     - name: Run a one-line script
-      run: echo "::set-output name=ARTIFACT_NAME::${{ matrix.repos }}"
+      run: |
+        REPO=${{ matrix.repos }}
+        ARTIFACT="${REPO//[\/]/_"
+        echo "::set-output name=ARTIFACT_NAME::$ARTIFACT"
       id: artifact-name
   
   #run: echo "The selected color is ${{ steps.random-color-generator.outputs.SELECTED_COLOR }}"
