@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repos: ${{ steps.get-repos.outputs.REPOS }}
+        repos: ${{ matrix.steps.get-repos.outputs.REPOS }}
         # [ 'dsp-testing/ghas-intro-6', 'amitgupta7/webgoat' ]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
