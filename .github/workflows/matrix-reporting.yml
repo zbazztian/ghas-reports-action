@@ -20,12 +20,13 @@ jobs:
       - uses: octokit/request-action@v2.x
         id: get_repos
         with:
-          route: GET /user/repos
+          route: GET /orgs/{org}/settings/billing/advanced-security
+          org: dsp-testing
         env:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
       - id: set-repos
         run: |
-          REPOS=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
+          REPOS=`echo '${{ steps.get_repos.outputs.data }}' | jq '[.repositories[].name]'`
           echo '::set-output name=MATRIX::'$REPOS
 
   build:
