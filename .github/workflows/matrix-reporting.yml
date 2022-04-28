@@ -20,8 +20,8 @@ jobs:
       - uses: octokit/request-action@v2.x
         id: get_repos
         with:
-          route: GET /orgs/{owner}/repos
-          owner: dsp-testing
+          route: GET /user/{owner}/repos
+          owner: amitgupta7
           per_page: 100
         env:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
