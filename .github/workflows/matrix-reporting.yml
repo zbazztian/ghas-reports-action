@@ -28,6 +28,6 @@ jobs:
 
     - uses: actions/upload-artifact@v3.0.0
       with:
-        name: ${{ matrix.repos }}
+        name: ${{GITHUB_ACTION}}
         path: alerts.xlsx   
            
