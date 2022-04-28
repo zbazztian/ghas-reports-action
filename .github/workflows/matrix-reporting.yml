@@ -23,9 +23,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
       - id: set-repos
         run: |
-          export REPOS=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
-          echo $REPOS
-          echo "::set-output name=repos::$REPOS"
+          REPOS=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
+          echo REPOS=$REPOS
+          echo '::set-output name=REPOS::$REPOS'
       
       - run: echo ${{ steps.set-repos.outputs.repos }}
   
