@@ -21,8 +21,9 @@ jobs:
         id: get_repos
         with:
           route: GET /orgs/{owner}/repos
-          owner: octodemo
+          owner: dsp-testing
           per_page: 100
+          type: private
         env:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
       - id: set-repos
