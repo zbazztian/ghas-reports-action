@@ -19,7 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    
+
+    - uses: octokit/request-action@v2.x
+      id: get_repos
+      with:
+        route: GET /orgs/{owner}/repos
+        owner: dsp-testing
+      env:
+        GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
+    - run: "echo ${{ steps.get_repos.outputs.data }}"
+
+
     - uses: amitgupta7/ghas-reports-action@v3.5
       with:
         token: ${{ secrets.APT_TOKEN }}
