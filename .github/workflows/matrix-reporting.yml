@@ -40,11 +40,9 @@ jobs:
     steps:
 
     - run: |
-          matrix='${{ needs.get-repos-for-org.outputs.repos }}'
+          matrix=${{ needs.get-repos-for-org.outputs.repos }}
           echo $matrix
           echo $matrix | jq .
-          echo $matrix | json2yaml
-
 
     - uses: amitgupta7/ghas-reports-action@v3.5
       with:
