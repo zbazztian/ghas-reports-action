@@ -27,7 +27,7 @@ jobs:
         owner: dsp-testing
       env:
         GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
-    - run: echo '${{ steps.get_repos.outputs.data }}' | jq '.[].full_name'
+    - run: echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'
 
 
     - uses: amitgupta7/ghas-reports-action@v3.5
