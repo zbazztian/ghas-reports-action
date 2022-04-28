@@ -27,10 +27,9 @@ jobs:
       - id: set-repos
         run: |
           REPOS=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
-          echo REPOS=$REPOS
-          echo '::set-output name=REPOS::$REPOS'
+          echo '::set-output name=MATRIX::$REPOS'
       
-      - run: echo ${{ steps.set-repos.outputs.repos }}
+      - run: echo ${{ steps.set-repos.outputs.MATRIX }}
   
   build:
     strategy:
