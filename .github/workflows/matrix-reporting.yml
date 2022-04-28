@@ -19,24 +19,22 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-        # Generate issues and save results
-    - uses: amitgupta7/ghas-reports-action@v3.5
-      with:
-        token: ${{ secrets.APT_TOKEN }}
-        # optionally define repo (default is calling repo)
-        repo: ${{ matrix.repos }}
+    # - uses: amitgupta7/ghas-reports-action@v3.5
+    #   with:
+    #     token: ${{ secrets.APT_TOKEN }}
+    #     # optionally define repo (default is calling repo)
+    #     repo: ${{ matrix.repos }}
         
     - name: Run a one-line script
       run: |
         REPO=${{ matrix.repos }}
         ARTIFACT="${REPO//[\/]/_"
-        echo "::set-output name=ARTIFACT_NAME::$ARTIFACT"
+        echo "::set-output name=ARTIFACT_NAME::"$ARTIFACT
       id: artifact-name
   
-  #run: echo "The selected color is ${{ steps.random-color-generator.outputs.SELECTED_COLOR }}"
 
-    - uses: actions/upload-artifact@v3.0.0
-      with:
-        name: ${{ steps.artifact-name.outputs.ARTIFACT_NAME}}
-        path: alerts.xlsx   
+    # - uses: actions/upload-artifact@v3.0.0
+    #   with:
+    #     name: ${{ steps.artifact-name.outputs.ARTIFACT_NAME}}
+    #     path: alerts.xlsx   
            
