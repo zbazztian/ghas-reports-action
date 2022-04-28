@@ -12,7 +12,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  matrix:
+  get-repos-for-org:
     runs-on: ubuntu-latest
     outputs:
       repos: ${{ steps.set-repos.outputs.MATRIX }}
@@ -28,21 +28,23 @@ jobs:
         run: |
           REPOS=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
           echo '::set-output name=MATRIX::'$REPOS
-      
-      - run: echo ${{ steps.set-repos.outputs.MATRIX }}
-  
+        
   build:
     strategy:
       fail-fast: false
       matrix:
-        repos: ${{ fromJson(needs.matrix.outputs.repos) }}
-        #[ 'dsp-testing/ghas-intro-6', 'amitgupta7/webgoat' ]
+        repos: [ 'dsp-testing/ghas-intro-6', 'amitgupta7/webgoat' ]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
-    - run: echo ${{ needs.matrix.outputs.repos }}
+    - run: |
+          matrix='${{ needs.get-repos-for-org.outputs.repos }}'
+          echo $matrix
+          echo $matrix | jq .
+          echo $matrix | json2yaml
+
 
     - uses: amitgupta7/ghas-reports-action@v3.5
       with:
