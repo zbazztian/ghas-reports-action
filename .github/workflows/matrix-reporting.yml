@@ -27,8 +27,12 @@ jobs:
         owner: dsp-testing
       env:
         GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
-    - run: echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'
+    - run: |
+        MATRIX=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
+        echo "::set-output name=REPOS::$MATRIX"
+      id: get-repos
 
+    - run: echo ${{ steps.get-repos.outputs.REPOS }}
 
     - uses: amitgupta7/ghas-reports-action@v3.5
       with:
@@ -46,6 +50,6 @@ jobs:
 
     - uses: actions/upload-artifact@v3.0.0
       with:
-        name: ${{ steps.artifact-name.outputs.ARTIFACT_NAME}}
+        name: ${{ steps.artifact-name.outputs.ARTIFACT_NAME }}
         path: alerts.xlsx   
            
