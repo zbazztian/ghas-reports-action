@@ -25,9 +25,15 @@ jobs:
         token: ${{ secrets.APT_TOKEN }}
         # optionally define repo (default is calling repo)
         repo: ${{ matrix.repos }}
+        
+    - name: Run a one-line script
+      run: echo '::set-output name=ARTIFACT_NAME::'${{ matrix.repos }}
+      id: artifact-name
+  
+  #run: echo "The selected color is ${{ steps.random-color-generator.outputs.SELECTED_COLOR }}"
 
     - uses: actions/upload-artifact@v3.0.0
       with:
-        name: ${{ github.action }}
+        name: ${{ steps.artifact-name.outputs.ARTIFACT_NAME}}
         path: alerts.xlsx   
            
