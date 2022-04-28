@@ -23,7 +23,6 @@ jobs:
           route: GET /orgs/{owner}/repos
           owner: dsp-testing
           per_page: 100
-          type: 'private'
         env:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
       - id: set-repos
