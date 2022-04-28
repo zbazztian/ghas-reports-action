@@ -20,9 +20,7 @@ jobs:
       - uses: octokit/request-action@v2.x
         id: get_repos
         with:
-          route: GET /user/{owner}/repos
-          owner: amitgupta7
-          per_page: 100
+          route: GET /user/repos
         env:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
       - id: set-repos
