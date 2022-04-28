@@ -15,7 +15,7 @@ jobs:
   matrix:
     runs-on: ubuntu-latest
     outputs:
-      repos: ${{ steps.set-repos.outputs.repos }}
+      repos: ${{ steps.set-repos.outputs.MATRIX }}
     steps:
       - uses: octokit/request-action@v2.x
         id: get_repos
@@ -35,7 +35,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repos: [ 'dsp-testing/ghas-intro-6', 'amitgupta7/webgoat' ]
+        repos: ${{ fromJson(needs.matrix.outputs.repos) }}
+        #[ 'dsp-testing/ghas-intro-6', 'amitgupta7/webgoat' ]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
