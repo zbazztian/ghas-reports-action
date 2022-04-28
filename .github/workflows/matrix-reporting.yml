@@ -28,8 +28,24 @@ jobs:
         run: |
           REPOS=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
           echo '::set-output name=MATRIX::'$REPOS
-        
+
+  check-matrix:
+    runs-on: ubuntu-latest
+    needs: get-repos-for-org
+    steps:
+      - name: Install json2yaml
+        run: |
+          sudo npm install -g json2yaml
+
+      - name: Check matrix definition
+        run: |
+          matrix='${{ needs.get-repos-for-org.outputs.repos }}'
+          echo $matrix
+          echo $matrix | jq .
+          echo $matrix | json2yaml
+
   build:
+    needs: get-repos-for-org
     strategy:
       fail-fast: false
       matrix:
