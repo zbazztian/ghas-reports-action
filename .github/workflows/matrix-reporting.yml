@@ -12,7 +12,7 @@ jobs:
   matrix:
     runs-on: ubuntu-latest
     outputs:
-      repos: ${{ steps.set-repos.outputs.REPOS }}
+      repos: ${{ steps.set-repos.outputs.repos }}
     steps:
       - uses: octokit/request-action@v2.x
         id: get_repos
@@ -23,21 +23,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
       - run: |
           MATRIX=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
-          echo "::set-output name=REPOS::$MATRIX"
+          echo "::set-output name=repos::$MATRIX"
         id: set-repos
-
-      - run: echo ${{ steps.set-repos.outputs.REPOS }}
   
   build:
     strategy:
       fail-fast: false
       matrix:
-        repos: ${{ needs.matrix.outputs.repos }}
-        # [ 'dsp-testing/ghas-intro-6', 'amitgupta7/webgoat' ]
+        repos: [ 'dsp-testing/ghas-intro-6', 'amitgupta7/webgoat' ]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+
+    - run: echo ${{ needs.matrix.outputs.repos }}
 
     - uses: amitgupta7/ghas-reports-action@v3.5
       with:
