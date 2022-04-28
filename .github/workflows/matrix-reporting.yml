@@ -21,10 +21,12 @@ jobs:
           owner: dsp-testing
         env:
           GITHUB_TOKEN: ${{ secrets.APT_TOKEN }}
-      - run: |
+      - id: set-repos
+        run: |
           MATRIX=`echo '${{ steps.get_repos.outputs.data }}' | jq 'map(.full_name)'`
           echo "::set-output name=repos::$MATRIX"
-        id: set-repos
+      
+      - run: echo ${{ steps.set-repos.outputs.repos }}
   
   build:
     strategy:
